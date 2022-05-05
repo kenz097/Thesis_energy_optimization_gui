@@ -102,6 +102,8 @@ def getPixels(S,c, tipo):
 
 """# **Return Histogram of RGB values sorted by frequency**"""
 
+#instead of using a histogram I preferred to use the Counter class to count the frequency of each color,
+#sort the frequencies in descending order and return them in output
 def getPixelHistogramSorted(pixel_c):
   if pixel_c:
     #count number of occurrence of value rgb
@@ -150,20 +152,30 @@ def getMedoids(hist,k,r):
       index+=1
     return medoids
 
-#use the Luminance for estimate the distance between 2 colors and get the minimum distance
+"""# **Return the value of medoid[i] closest between the color of pixel x,y and the list of medoids, uses the Euclidean distance to calculate the proximity**"""
+
+#Euclidean Distance of rgb values
+def EuclideanDistance(color1, color2):
+  return math.sqrt(pow((color1[0]-color2[0]),2)+pow((color1[1]-color2[1]),2)+pow((color1[1]-color2[1]),2))
+
+#use the Euclidean Distance for estimate the distance between 2 colors and get the minimum distance
 def getClosest(color, medoids):
-  temp=medoids[0]
-  min_distance = Lum(color,temp)
-  temp=getLuminanceByRGB(temp)
+  closest=medoids[0]
+  min_distance = EuclideanDistance(color,closest)
   for med in medoids:
-    dist = Lum(color,med)
+    dist = EuclideanDistance(color,med)
+    print(dist)
     if dist < min_distance:
       min_distance = dist
-      temp = getLuminanceByRGB(med)
-  return temp
+      closest = med 
+  return closest
 
 """# **Estrazione di BOCP e BOCC da un set mirato di GUI in un'app nativa Android.**"""
 
+"""algorithm BOCP and BOCC. TheBOCP is a hash-map structure for all the pixels in the GUI, in which a key is a quantized color (color ∗) 
+and the corresponding value (for a key) is a list of pixels assigned to that color.
+The BOCC is a hash-map too, in which the key is a quantized color (color ∗) but the corresponding value is a set
+of the components associated with the pixels in BOCP[color ∗]."""
 def BOCP_BOCC_algorithm(k,r,GUIS):
   BOCP={}
   BOCC={}
@@ -196,6 +208,7 @@ def BOCP_BOCC_algorithm(k,r,GUIS):
           for pixel_color in list_color:
             color_quant=getClosest(pixel_color,medoids)
             pixel_x_y = (list_x[i],list_y[i])
+            #hashmap of BOCP and BOCC, the keys are the quantized values
             BOCP.setdefault(color_quant,[]).append(pixel_x_y)
             BOCC.setdefault(color_quant,[]).append(c)
             i+=1
@@ -203,8 +216,8 @@ def BOCP_BOCC_algorithm(k,r,GUIS):
 
 """# **MAIN**"""
 
-dir=[]
 dir_list = os.listdir('/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/Snapshot')
+#k and r are assigned by the authors of the paper
 k=3
 r=1.6
 #we get all the directories
@@ -214,9 +227,9 @@ for directory in dir_list:
   GUIS=getGUIS(path)
   #algorithm BCOP_BOC
   BOCP,BOCC=BOCP_BOCC_algorithm(k,r,GUIS)
-  created_file="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/DatiSalvati/"+directory+"_BOCP.pkl"
+  created_file="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/DatiSalvati/"+directory+"_BOCP.pickle"
   with open(created_file,"wb") as handle:
     pickle.dump(BOCP, handle,protocol=pickle.HIGHEST_PROTOCOL)
-    created_file="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/DatiSalvati/"+directory+"_BOCC.pkl"
+    created_file="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/DatiSalvati/"+directory+"_BOCC.pickle"
   with open(created_file,"wb") as handle:
     pickle.dump(BOCC, handle,protocol=pickle.HIGHEST_PROTOCOL)
