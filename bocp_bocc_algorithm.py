@@ -97,7 +97,6 @@ def getPixels(S,c, tipo):
     pixel_c.columns = ['Axis-X', 'Axis-Y']
     pixel_c['R-G-B'] = list_color
     pixel_c["Components"] = component
-    #print(pixel_c)
   return pixel_c
 
 """# **Return Histogram of RGB values sorted by frequency**"""
@@ -164,7 +163,6 @@ def getClosest(color, medoids):
   min_distance = EuclideanDistance(color,closest)
   for med in medoids:
     dist = EuclideanDistance(color,med)
-    print(dist)
     if dist < min_distance:
       min_distance = dist
       closest = med 
@@ -180,7 +178,7 @@ def BOCP_BOCC_algorithm(k,r,GUIS):
   BOCP={}
   BOCC={}
   #iterate all guis
-  for GUI in GUIS:
+  for n_gui,GUI in enumerate(GUIS):
       print(GUI)
       S=PIL.Image.open(GUI+".png")
       #convert image in rgb
@@ -207,7 +205,9 @@ def BOCP_BOCC_algorithm(k,r,GUIS):
           list_y=list(pixel_c["Axis-Y"])
           for pixel_color in list_color:
             color_quant=getClosest(pixel_color,medoids)
-            pixel_x_y = (list_x[i],list_y[i])
+            #first element is the  number of the interface 
+            pixel_x_y = (n_gui,list_x[i],list_y[i])
+            c_n=(n_gui,c)
             #hashmap of BOCP and BOCC, the keys are the quantized values
             BOCP.setdefault(color_quant,[]).append(pixel_x_y)
             BOCC.setdefault(color_quant,[]).append(c)
@@ -216,20 +216,20 @@ def BOCP_BOCC_algorithm(k,r,GUIS):
 
 """# **MAIN**"""
 
-dir_list = os.listdir('/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/Snapshot')
+dir_list = os.listdir('Snapshot')
 #k and r are assigned by the authors of the paper
 k=3
 r=1.6
 #we get all the directories
 for directory in dir_list:
-  path="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/Snapshot/"+directory
+  path="Snapshot/"+directory
   #we get all the guis 
   GUIS=getGUIS(path)
   #algorithm BCOP_BOC
   BOCP,BOCC=BOCP_BOCC_algorithm(k,r,GUIS)
-  created_file="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/DatiSalvati/"+directory+"_BOCP.pickle"
+  created_file="DatiSalvati/"+directory+"_BOCP.pickle"
   with open(created_file,"wb") as handle:
     pickle.dump(BOCP, handle,protocol=pickle.HIGHEST_PROTOCOL)
-    created_file="/content/gdrive/Shareddrives/Tesi di Laurea Magistrale/DatiSalvati/"+directory+"_BOCC.pickle"
+    created_file="DatiSalvati/"+directory+"_BOCC.pickle"
   with open(created_file,"wb") as handle:
     pickle.dump(BOCC, handle,protocol=pickle.HIGHEST_PROTOCOL)
